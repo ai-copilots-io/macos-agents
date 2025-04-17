@@ -1,0 +1,7 @@
+[project]
+name = "macos-agents"
+version = "0.1.0"
+description = "Multi-agent system that can execute tasks on macos"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
