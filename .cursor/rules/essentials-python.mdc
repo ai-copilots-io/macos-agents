@@ -1,0 +1,133 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Python 3.13 Coding Standards
+
+## Type Annotations
+
+- Use PEP 695 type aliases with the new syntax:
+  ```python
+  type Point = tuple[float, float]
+  type OptionalPoint = Point | None
+  ```
+
+- Use the new `type` keyword for generic type aliases:
+  ```python
+  type Vector[T] = list[T]
+  ```
+
+- Use type parameters with bounds:
+  ```python
+  type ListLike[T: Sized] = list[T] | tuple[T, ...]
+  ```
+
+## New Python 3.13 Features
+
+- Use PEP 702 shorthand syntax for f-strings when interpolating simple variables:
+  ```python
+  name = "World"
+  greeting = f"Hello {name=}"  # Python 3.12: f"Hello {name}"
+  ```
+
+- Exception groups have limitations - don't use `return`, `break`, or `continue` in an `except*` block:
+  ```python
+  # INCORRECT:
+  try:
+      risky_operation()
+  except* ValueError as eg:
+      return handle_errors(eg.exceptions)  # SyntaxError in 3.13!
+      
+  # CORRECT:
+  error_result = None
+  try:
+      risky_operation()
+  except* ValueError as eg:
+      error_result = handle_errors(eg.exceptions)
+  if error_result:
+      return error_result
+  ```
+
+## Code Organization
+
+- Use match/case statements for complex conditionals:
+  ```python
+  match status:
+      case "success":
+          handle_success()
+      case "error" if has_retry():
+          retry_operation()
+      case "error":
+          handle_error()
+      case _:
+          handle_unknown()
+  ```
+
+- Use parameter specification for better typing of higher-order functions:
+  ```python
+  from typing import Callable, TypeVar, ParamSpec
+
+  P = ParamSpec('P')
+  R = TypeVar('R')
+
+  def logged(f: Callable[P, R]) -> Callable[P, R]:
+      ...
+  ```
+
+## Performance Optimizations
+
+- Use `itertools` and generator expressions for memory efficiency
+- Prefer `collections.Counter` over manual counting dictionaries
+- Use `functools.cache` for memoization with hashable objects only:
+  ```python
+  # Classes must be hashable to use with @cache:
+  @dataclass(frozen=True)  # frozen makes dataclass hashable
+  class Config:
+      name: str
+      version: int
+      
+  @cache
+  def process_config(config: Config) -> dict:
+      # ...
+      
+  # For instance methods, consider staticmethod + cache:
+  class MyClass:
+      @staticmethod
+      @cache
+      def cached_method(arg):
+          # ...
+  ```
+
+## Testing
+
+- Use `unittest.IsolatedAsyncioTestCase` for async test cases
+- Use parametrized tests to reduce test code duplication
+- Use type checkers (mypy, pyright) with strict settings
+
+## Documentation
+
+- Follow Google docstring style:
+  ```python
+  def function(param1: str, param2: int) -> bool:
+      """Short description.
+      
+      Longer description if needed.
+      
+      Args:
+          param1: Description of param1
+          param2: Description of param2
+          
+      Returns:
+          Description of return value
+          
+      Raises:
+          ValueError: When something goes wrong
+      """
+  ```
+
+## Project Structure
+
+- Use pyproject.toml for project configuration
+- Use `src/` layout for production code
+- Separate tests into tests/ directory
